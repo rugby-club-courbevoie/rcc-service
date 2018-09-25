@@ -7,12 +7,12 @@ import { assert } from 'chai';
 import { config } from '../lib/config';
 require('f-mocha').setup();
 
-const coachLicense = '1988011947404';
-const testDate = '2017-09-20';
+const coachLicense = '2001091046249';
+const testDate = '2017-05-23';
 
 describe('GET /presences', () => {
     it('returns valid data', () => {
-        Login.createTestLogin('secret');
+        Login.createTestLogin('test@acme.com', 'secret');
         const res = wait<request.Response>(cb => request(app)
             .get(`/presences?event=training&category=U12&date=${testDate}&coachLicense=${coachLicense}`)
             .auth('test@acme.com', 'secret')
@@ -34,14 +34,13 @@ describe('GET /presences', () => {
             assert.isString(p.playerLicense);
             assert.isString(p.playerName);
             assert.isBoolean(p.present);
-            //assert.equal(p.presentStamp, '');
+            assert.equal(p.presentStamp, '');
         });
     });
 });
 
 describe('PUT /presences', () => {
     it('updates', () => {
-        Login.createTestLogin('secret');
         const get1Res = wait<request.Response>(cb => request(app)
             .get(`/presences?event=training&category=U12&date=${testDate}&coachLicense=${coachLicense}`)
             .auth('test@acme.com', 'secret')

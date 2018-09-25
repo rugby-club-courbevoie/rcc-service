@@ -16,9 +16,9 @@ export class HttpError extends Error {
 export function withTrace<T>(message: string, body: () => T) {
     const t0 = Date.now();
     try {
-        console.log(`${message} BEGIN`);
+        console.log(`BEGIN ${message}`);
         return body();
     } finally {
-        console.log(`${message} END (${Date.now() - t0} millis)`);
+        console.log(`END ${message} (${Date.now() - t0} millis)`);
     }
 }

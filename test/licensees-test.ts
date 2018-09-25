@@ -9,7 +9,7 @@ require('f-mocha').setup();
 
 describe('GET /licensees/lic', () => {
     it('returns valid data', () => {
-        Login.createTestLogin('secret');
+        Login.createTestLogin('test@acme.com', 'secret');
         const res = wait<request.Response>(cb => request(app)
             .get('/licensees/2006101900070')
             .auth('test@acme.com', 'secret')
@@ -18,7 +18,7 @@ describe('GET /licensees/lic', () => {
             .end(cb));
         assert.isObject(res.body);
         assert.equal(res.body.license, '2006101900070');
-        assert.equal(res.body.firstName, 'Belle');
-        assert.equal(res.body.lastName, 'MacFadzean');
+        assert.equal(res.body.firstName, 'Adrien');
+        assert.equal(res.body.lastName, 'FAVOTTI');
     });
 });

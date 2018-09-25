@@ -9,7 +9,7 @@ require('f-mocha').setup();
 
 describe('GET /categories', () => {
     it('returns valid data', () => {
-        Login.createTestLogin('secret');
+        Login.createTestLogin('test@acme.com', 'secret');
         const res = wait<request.Response>(cb => request(app)
             .get('/categories')
             .auth('test@acme.com', 'secret')
@@ -20,9 +20,9 @@ describe('GET /categories', () => {
         assert.isAtLeast(res.body.length, 5);
         res.body.forEach((category: Category) => {
             assert.isString(category.name);
-            assert.match(category.name, /(^U\d+|Seniors|Vendredis)$/);
+            assert.match(category.name, /^U\d+$/);
             assert.isNumber(category.year1);
-            assert.isAtLeast(category.year1, 1910); // also checks that we are on test spreadsheet
+            assert.isAtLeast(category.year1, 1980);
         });
     });
 });

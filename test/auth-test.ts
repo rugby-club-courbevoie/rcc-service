@@ -1,13 +1,15 @@
 import * as request from 'supertest';
 import { wait } from 'f-promise';
 import { app } from '../lib/app';
-import { Login, testEmail } from '../lib/model/login';
+import { Login } from '../lib/model/login';
 import { assert } from 'chai';
 require('f-mocha').setup();
 
+const testEmail = 'test@acme.com';
+
 describe('POST /createPassword', () => {
     it('200 if email registered with empty passord', () => {
-        const testLicense = Login.createTestLogin();
+        const testLicense = Login.createTestLogin(testEmail);
         const res = wait<request.Response>(cb => request(app)
             .get('/changePassword')
             .auth(testEmail, 'secret')
@@ -27,7 +29,7 @@ describe('POST /createPassword', () => {
         assert.match(res.body.error, /unknown login/);
     });
     it('401 if password already set', () => {
-        Login.createTestLogin();
+        Login.createTestLogin(testEmail);
         Login.changePassword(testEmail, 'secret');
         const res = wait<request.Response>(cb => request(app)
             .get('/changePassword')
@@ -38,7 +40,7 @@ describe('POST /createPassword', () => {
         assert.match(res.body.error, /password already set/);
     });
     it('401 if password too short', () => {
-        Login.createTestLogin();
+        Login.createTestLogin(testEmail);
         const res = wait<request.Response>(cb => request(app)
             .get('/changePassword')
             .auth(testEmail, 'secre')
@@ -51,7 +53,7 @@ describe('POST /createPassword', () => {
 
 describe('GET /ping', () => {
     it('200 if email and password ok', () => {
-        Login.createTestLogin();
+        Login.createTestLogin(testEmail);
         Login.changePassword(testEmail, 'secret');
         const res = wait<request.Response>(cb => request(app)
             .get('/ping')
@@ -71,7 +73,7 @@ describe('GET /ping', () => {
         assert.match(res.body.error, /unknown login/);
     });
     it('401 if password not set', () => {
-        Login.createTestLogin();
+        Login.createTestLogin(testEmail);
         const res = wait<request.Response>(cb => request(app)
             .get('/ping')
             .auth(testEmail, 'secret')
@@ -81,7 +83,7 @@ describe('GET /ping', () => {
         assert.match(res.body.error, /authentication failed/);
     });
     it('401 if password mismatch', () => {
-        Login.createTestLogin();
+        Login.createTestLogin(testEmail);
         Login.changePassword(testEmail, 'secret');
         const res = wait<request.Response>(cb => request(app)
             .get('/ping')

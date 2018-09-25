@@ -11,24 +11,25 @@ export interface RowChange {
 }
 
 export class Database {
+    static id = '1yIZliWZ7cdTzd3njvrgYuahkLxWEVR9HzDucstNzVHI';
     static auth: OAuth2;
 
-    static readAll(spreadsheetId: string, sheet: string) {
+    static readAll(sheet: string) {
         if (!this.auth) throw new Error('cannot read: auth missing');
-        return withTrace(`GOOGLE READ ALL ${sheet}`, () => {
+        return withTrace(`Google read all ${sheet}`, () => {
             const response = wait<any>(cb => sheets.spreadsheets.values.get({
-                spreadsheetId: spreadsheetId,
+                spreadsheetId: this.id,
                 auth: this.auth,
                 range: encodeURIComponent(sheet),
             }, cb));
             return response.values as any[][];
         });
     }
-    static update(spreadsheetId: string, sheet: string, changes: RowChange[]) {
+    static update(sheet: string, changes: RowChange[]) {
         if (!this.auth) throw new Error('cannot read: auth missing');
-        return withTrace(`GOOGLE UPDATE ${sheet}: ${changes.length} rows`, () => {
+        return withTrace(`Google update ${sheet}: ${changes.length} rows`, () => {
             const response = wait<any>(cb => sheets.spreadsheets.values.batchUpdate({
-                spreadsheetId: spreadsheetId,
+                spreadsheetId: this.id,
                 auth: this.auth,
                 resource: {
                     valueInputOption: 'RAW',

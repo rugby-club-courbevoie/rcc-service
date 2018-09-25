@@ -1,6 +1,6 @@
 import * as express from 'f-express';
-import { context, withContext, run } from 'f-promise';
 import { config } from './config';
+import { Database } from './database';
 import { Category } from './model/category';
 import { Licensee } from './model/licensee';
 import { Presence } from './model/presence';
@@ -20,10 +20,7 @@ app.use(authApp);
 
 interface PostResponse extends express.Response { body: any };
 
-app.use((req, res, next) => {
-    const cx = context();
-    bodyParser.json()(req, res, () => run(() => withContext(next, cx)).catch(console.error));
-});
+app.use(bodyParser.json());
 
 app.get('/ping', (req, res) => {
     res.json({});

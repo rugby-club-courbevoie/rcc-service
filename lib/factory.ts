@@ -1,4 +1,3 @@
-import { context } from 'f-promise';
 import { Database } from './database';
 import { InternalError } from './util';
 import { run, funnel } from 'f-promise';
@@ -57,7 +56,7 @@ export class Factory {
     propertiesByColumnName: Dict<Property> = {};
     propertiesByColumnIndex: Property[] = [];
     private funnel = funnel(1);
-    private all = {} as Dict<any[]>;
+    private all: any[] | undefined;
     private static allFactories = [] as Factory[];
 
     constructor() {
@@ -92,18 +91,16 @@ export class Factory {
 
     invalidate() {
         this.funnel(() => {
-            this.all = {};
+            this.all = undefined;
         });
     }
 
     private load<T>(): T[] {
-        const spreadsheetId = context().spreadsheetId;
-        if (!spreadsheetId) console.error(new Error().stack);
-        if (this.all[spreadsheetId]) return this.all[spreadsheetId];
-        const rows = Database.readAll(spreadsheetId, this.sheet);
+        if (this.all) return this.all;
+        const rows = Database.readAll(this.sheet);
         if (rows.length < 1) throw new InternalError(`${this.sheet}: no column headers`);
         this.parseHeaderRow(rows[0]);
-        return this.all[spreadsheetId] = rows.slice(1).map(row => this.rowIn<T>(row));
+        return this.all = rows.slice(1).map(row => this.rowIn<T>(row));
     }
 
     readAll<T>(): T[] {
@@ -114,17 +111,15 @@ export class Factory {
             const all = this.load();
             // TODO: write them to database
             let row = all.length + 2;
-            const spreadsheetId = context().spreadsheetId;
-            Database.update(spreadsheetId, this.sheet, items.map(r => ({
+            Database.update(this.sheet, items.map(r => ({
                 row: row++,
                 data: this.rowOut(r),
             })));
-            this.all[spreadsheetId] = all.concat(items);
+            this.all = all.concat(items);
         });
     }
 
     update<T>(data: T[], where: (src: T, dst: T) => boolean, action: (src: T, dst: T) => void, orInsert?: boolean) {
-        const spreadsheetId = context().spreadsheetId;
         return this.funnel(() => {
             let all = this.load<T>();
             const modified = [];
@@ -158,7 +153,7 @@ export class Factory {
 
                 }
             }
-            Database.update(spreadsheetId, this.sheet, modified.map(r => ({
+            Database.update(this.sheet, modified.map(r => ({
                 row: r.row,
                 data: this.rowOut(r.data),
             })));

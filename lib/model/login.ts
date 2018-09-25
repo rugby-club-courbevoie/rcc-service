@@ -1,20 +1,12 @@
-import { context } from 'f-promise';
 import { column, sheet, Record, type } from '../factory';
 import { Database } from '../database';
 import { HttpError } from '../util';
 import { createHash } from 'crypto';
 
 // VERY IMPORTANT: turn debug off before publish
-const debug = false;
+const debug = true;
 if (debug) console.error('!!! WARNING: running authentication in UNSAFE debug mode !!!');
 const minPasswordLength = 6;
-
-export const spreadsheetIds = {
-    prod: '1yIZliWZ7cdTzd3njvrgYuahkLxWEVR9HzDucstNzVHI',
-    test: '1i3ptOLQAI9DeoLFzhEuYfrkfaCyrfUnsD2j-1QuN3Lw',
-}
-
-export const testEmail = 'test@acme.com';
 
 @sheet('Logins')
 export class Login extends Record {
@@ -61,12 +53,7 @@ export class Login extends Record {
             }, true);
     }
 
-    static setContext(email: string) {
-        context().spreadsheetId = /^test@/.test(email) ? spreadsheetIds.test : spreadsheetIds.prod;
-    }
-
     static changePassword(email: string, password: string) {
-        this.setContext(email);
         this.factory.invalidate();
         const login = this.find(email.toLowerCase());
         if (!debug && login.password) throw new HttpError(401, `${email}: password already set; cannot change it`);
@@ -77,18 +64,16 @@ export class Login extends Record {
     }
 
     static checkPassword(email: string, password: string) {
-        this.setContext(email);
         const login = this.find(email.toLowerCase());
         const hash = this.hash(email, login.seed, password);
         if (hash !== login.password) throw new HttpError(401, `authentication failed: ${email}`);
     }
 
-    static createTestLogin(password?: string) {
-        this.setContext(testEmail);
+    static createTestLogin(email: string, password?: string) {
         Database.init();
         const license = '1234567890123';
-        this.persist(license, testEmail, '', '');
-        if (password) this.changePassword(testEmail, password);
+        this.persist(license, email, '', '');
+        if (password) this.changePassword(email, password);
         return license;
     }
 }
